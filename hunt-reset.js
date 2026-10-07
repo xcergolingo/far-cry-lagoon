@@ -15,9 +15,12 @@
   const btn=document.createElement("button");btn.id="golingo-reset-hunt";btn.textContent="NEW HUNT";
   btn.title="Empty the basket and scatter all words into fresh locations";
   const top=document.querySelector(".mobile-top");
-  if(top)top.appendChild(btn);
+  // NEW HUNT belongs in Settings, not the gameplay controls.
+  const settings=document.getElementById("settings");
+  const settingActions=settings?.querySelector(".setting-actions")||settings;
+  if(settingActions)settingActions.appendChild(btn);
   const desktop=document.getElementById("menu")?.querySelector(".actions");
-  const desktopBtn=btn.cloneNode(true);desktopBtn.id="golingo-reset-hunt-menu";desktop?.appendChild(desktopBtn);
+  const desktopBtn=btn.cloneNode(true);desktopBtn.id="golingo-reset-hunt-menu";// Avoid duplicate NEW HUNT buttons on the title screen.
   function reset(){
    if(!confirm("Clear the basket and start a new hunt with fresh word locations?"))return;
    h.state.words.forEach(w=>{w.basket=false;w.found=false;w.practice=0;delete w.huntLocation;delete w.exploreSlot});
