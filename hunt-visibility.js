@@ -1,78 +1,27 @@
-/* GoLingo Hunt visibility assist v1 */
+/* Always-visible Show Word control and target card */
 (function(){
- function install(){
-  const h=window.__LAGOON__?.hunt,player=window.__LAGOON__?.player;
-  if(!h||!player)return false;if(h.__huntVisibilityV1)return true;h.__huntVisibilityV1=true;
-
-  function norm(a){return Math.atan2(Math.sin(a),Math.cos(a))}
-  function faceMarker(m){
-    if(!m)return;
-    const dx=m.group.position.x-player.position.x,dz=m.group.position.z-player.position.z;
-    player.yaw=Math.atan2(-dx,-dz);
-    // Put the eye near the marker's vertical level when necessary so it cannot be above/below the view.
-    const type=m.word.exploreType;
-    if(type==="deep"||type==="reef"){
-      player.position.y=m.group.position.y+.25;
-    }else if(type==="surface"){
-      player.position.y=Math.max(player.position.y,m.group.position.y+.65);
-    }
-    // Make the target visually unmistakable for a few seconds.
-    const sp=m.sprite,orb=m.orb;
-    if(sp){
-      const original=sp.scale.clone();
-      sp.scale.multiplyScalar(1.65);
-      sp.material.depthTest=false;sp.material.opacity=1;
-      let start=performance.now();
-      const pulse=now=>{
-        if(!h.markers.includes(m))return;
-        const t=(now-start)/1000;
-        if(t>5){sp.scale.copy(original);sp.material.depthTest=true;sp.material.opacity=1;return}
-        const k=1+.10*Math.sin(t*8);sp.scale.copy(original).multiplyScalar(1.65*k);
-        requestAnimationFrame(pulse);
-      };requestAnimationFrame(pulse);
-    }
-    if(orb){
-      const old=orb.scale.clone();orb.scale.multiplyScalar(2.1);
-      setTimeout(()=>{if(orb.parent)orb.scale.copy(old)},5000);
-    }
-    h.notify("Target found nearby: "+m.word.learning+". It is highlighted in front of you.");
-  }
-
-  // Watch the Hunt guide. When v2 announces TARGET NEARBY, use the selected nearest marker
-  // and orient the player to it. At this point v2 has already stopped movement.
-  const guide=document.getElementById("golingo-hunt-guide");
-  if(guide){
-    let handled="";
-    new MutationObserver(()=>{
-      if(!guide.textContent.includes("TARGET NEARBY"))return;
-      // v2's arrived target is the closest remaining marker at this exact location.
-      let best=null,bd=Infinity;
-      for(const m of h.markers){
-        if(m.word.basket)continue;
-        const d=player.position.distanceTo(m.group.position);
-        if(d<bd){bd=d;best=m}
-      }
-      if(!best)return;
-      const k=String(best.word.id||best.word.learning);
-      if(k===handled)return;handled=k;faceMarker(best);
-    }).observe(guide,{childList:true,subtree:true,characterData:true});
-  }
-
-  // Also provide an explicit "SHOW WORD" action during the nearby state.
-  const show=document.createElement("button");show.id="golingo-show-target";show.textContent="SHOW WORD";
-  show.style.cssText="position:absolute;right:18px;top:62px;pointer-events:auto;padding:9px 12px;border-color:#75d1bf;background:rgba(5,47,49,.82);font-size:9px;z-index:31";
-  show.classList.add("hidden");document.getElementById("hud")?.appendChild(show);
-  let timer=setInterval(()=>{
-    if(!guide){clearInterval(timer);return}
-    const near=guide.textContent.includes("TARGET NEARBY");
-    show.classList.toggle("hidden",!near);
-  },250);
-  show.onclick=()=>{
-    let best=null,bd=Infinity;
-    for(const m of h.markers){if(m.word.basket)continue;const d=player.position.distanceTo(m.group.position);if(d<bd){bd=d;best=m}}
-    faceMarker(best);
-  };
-  return true;
- }
- let n=0,t=setInterval(()=>{if(install()||++n>300)clearInterval(t)},50);
+function init(){
+ const h=window.__LAGOON__?.hunt;
+ if(!h)return false;
+ if(document.getElementById("golingo-show-word-fixed"))return true;
+ const b=document.createElement("button");b.id="golingo-show-word-fixed";b.textContent="SHOW WORD";
+ b.style.cssText="position:fixed;right:12px;top:75px;z-index:9999;padding:12px 14px;background:#07564d;color:white;border:2px solid #a7ffe2;border-radius:8px;font-weight:bold;pointer-events:auto";
+ document.body.appendChild(b);
+ const card=document.createElement("div");card.id="golingo-target-card";
+ card.style.cssText="display:none;position:fixed;top:30%;left:50%;transform:translateX(-50%);z-index:10000;max-width:90vw;padding:24px;background:#083b3a;color:white;border:2px solid #a7ffe2;border-radius:12px;text-align:center;pointer-events:auto";
+ document.body.appendChild(card);
+ b.onclick=()=>{
+  const p=window.__LAGOON__?.player;
+  let best=null,d=Infinity;
+  for(const m of h.markers){if(m.word.basket)continue;const v=p.position.distanceTo(m.group.position);if(v<d){d=v;best=m}}
+  if(!best){card.textContent="No remaining words.";card.style.display="block";return}
+  card.replaceChildren();
+  const title=document.createElement("div");title.textContent=best.word.learning;title.style.cssText="font:700 42px system-ui;margin-bottom:12px";card.appendChild(title);
+  const practice=document.createElement("button");practice.textContent="PRACTICE WORD";practice.onclick=()=>{card.style.display="none";h.practiceWord=best.word;best.word.found=true;h.save();h.openPractice(best.word)};card.appendChild(practice);
+  const close=document.createElement("button");close.textContent="CLOSE";close.style.marginLeft="12px";close.onclick=()=>card.style.display="none";card.appendChild(close);
+  card.style.display="block";
+ };
+ return true;
+}
+let n=0,t=setInterval(()=>{if(init()||++n>300)clearInterval(t)},100);
 })();
