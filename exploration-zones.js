@@ -46,7 +46,7 @@
    allocate(h.state.words);h.state.words.forEach(w=>w.huntLocation.v5=true);save(h);
   }
   const rebuild=h.rebuild.bind(h);
-  h.rebuild=function(){const result=rebuild();place(h);return result};
+  h.rebuild=function(){if(h.state.words.some(w=>!w.huntLocation)){allocate(h.state.words);h.state.words.forEach(w=>w.huntLocation.v5=true);save(h)}const result=rebuild();place(h);return result};
   place(h);
   const apply=h.apply.bind(h);
   h.apply=function(){
