@@ -3,11 +3,11 @@
  const types=["land","surface","island","reef","deep"];
  function randomPoint(type){
   const r=Math.random;
-  if(type==="land")return {x:-48+r()*96,z:18+r()*57,y:8+r()*3,type};
+  if(type==="land")return {x:-48+r()*96,z:18+r()*57,y:2.4+r()*0.8,type};
   if(type==="island"){
    const islands=[[-75,-95],[72,-108],[55,48]];
    const a=islands[Math.floor(r()*islands.length)];
-   return {x:a[0]+(r()-.5)*28,z:a[1]+(r()-.5)*28,y:7+r()*3,type};
+   return {x:a[0]+(r()-.5)*28,z:a[1]+(r()-.5)*28,y:2.2+r()*0.8,type};
   }
   if(type==="surface")return {x:-100+r()*200,z:-105+r()*115,y:0.15,type};
   if(type==="reef")return {x:-90+r()*180,z:-110+r()*70,y:-3-r()*6,type};
@@ -31,7 +31,9 @@
   for(const m of h.markers){
    const p=m.word.huntLocation;
    if(!p)continue;
-   m.group.position.set(p.x,p.y,p.z);m.base=p.y;
+   // World-space word text is a child offset above the marker group; keep group low enough to interact.
+   const y=p.type==="surface"?0.1:p.type==="land"||p.type==="island"?Math.min(p.y,2.5):p.y;
+   m.group.position.set(p.x,y,p.z);m.base=y;
    m.group.visible=true;
    if(m.sprite){m.sprite.visible=true;m.sprite.scale.set(5.4,1.35,1);m.sprite.material.depthTest=false;m.sprite.material.depthWrite=false;m.sprite.material.opacity=1}
    m.word.exploreType=p.type;m.word.exploreZone=p.type;
