@@ -1,48 +1,60 @@
-/* Fresh random locations per hunt, stable until the next hunt */
+/* Wide-area randomized hunt v5. No fixed anchor slots; land words float visibly. */
 (function(){
- const zones=[
-  {type:"land",points:[[-25,48],[12,50],[39,38],[-38,30],[26,24],[-10,60]]},
-  {type:"island",points:[[-72,-82],[-64,-94],[68,-98],[78,-111],[52,55],[60,40]]},
-  {type:"surface",points:[[-28,-18],[8,-38],[42,-52],[-58,-48],[70,-34],[-5,-88]]},
-  {type:"reef",points:[[-24,-28],[18,-42],[38,-68],[-48,-62],[55,-78]]},
-  {type:"deep",points:[[-20,-105],[18,-125],[48,-145],[-55,-128],[75,-155]]}
- ];
- function place(h){
-  if(!h?.markers)return;
-  const used=[];
-  for(const m of h.markers){
-   const w=m.word;
-   if(!w.huntLocation){
-    let loc=null;
-    for(let attempt=0;attempt<120;attempt++){
-     const z=zones[Math.floor(Math.random()*zones.length)],base=z.points[Math.floor(Math.random()*z.points.length)];
-     const x=base[0]+(Math.random()-.5)*16,zz=base[1]+(Math.random()-.5)*16;
-     if(used.every(p=>Math.hypot(p[0]-x,p[1]-zz)>13)){
-      const y=z.type==="deep"?-12-Math.random()*12:z.type==="reef"?-3-Math.random()*5:z.type==="surface"?.65:z.type==="island"?2:1.7;
-      loc={x,y,z:zz,type:z.type};break;
-     }
-    }
-    if(!loc){const z=zones[Math.floor(Math.random()*zones.length)],p=z.points[Math.floor(Math.random()*z.points.length)];loc={x:p[0]+Math.random()*7,y:z.type==="deep"?-15:z.type==="reef"?-5:z.type==="surface"?.65:2,z:p[1]+Math.random()*7,type:z.type}}
-    w.huntLocation=loc;
-   }
-   const p=w.huntLocation;used.push([p.x,p.z]);
-   m.group.position.set(p.x,p.y,p.z);m.base=p.y;
-   w.exploreType=p.type;w.exploreZone=p.type;
+ const types=["land","surface","island","reef","deep"];
+ function randomPoint(type){
+  const r=Math.random;
+  if(type==="land")return {x:-48+r()*96,z:18+r()*57,y:8+r()*3,type};
+  if(type==="island"){
+   const islands=[[-75,-95],[72,-108],[55,48]];
+   const a=islands[Math.floor(r()*islands.length)];
+   return {x:a[0]+(r()-.5)*28,z:a[1]+(r()-.5)*28,y:7+r()*3,type};
   }
-  try{localStorage.setItem("lagoon-language-hunt-v1",JSON.stringify(h.state))}catch(e){}
+  if(type==="surface")return {x:-100+r()*200,z:-105+r()*115,y:1.6,type};
+  if(type==="reef")return {x:-90+r()*180,z:-110+r()*70,y:-3-r()*6,type};
+  return {x:-100+r()*200,z:-180+r()*85,y:-12-r()*13,type};
  }
+ function allocate(words){
+  const occupied=[];
+  words.forEach((w,i)=>{
+   let point=null;
+   for(let n=0;n<300;n++){
+    const type=types[(i+Math.floor(Math.random()*types.length))%types.length];
+    const p=randomPoint(type);
+    if(occupied.every(q=>Math.hypot(q.x-p.x,q.z-p.z)>17)){point=p;break}
+   }
+   if(!point)point=randomPoint(types[i%types.length]);
+   w.huntLocation=point;occupied.push(point);
+  });
+ }
+ function place(h){
+  if(!h.markers)return;
+  for(const m of h.markers){
+   const p=m.word.huntLocation;
+   if(!p)continue;
+   m.group.position.set(p.x,p.y,p.z);m.base=p.y;
+   m.group.visible=true;
+   if(m.sprite){m.sprite.visible=true;m.sprite.scale.set(5.4,1.35,1);m.sprite.material.depthTest=false;m.sprite.material.depthWrite=false;m.sprite.material.opacity=1}
+   m.word.exploreType=p.type;m.word.exploreZone=p.type;
+  }
+ }
+ function save(h){try{localStorage.setItem("lagoon-language-hunt-v1",JSON.stringify(h.state))}catch(e){}}
  function install(){
   const h=window.__LAGOON__?.hunt;if(!h)return false;
-  if(h.__randomHuntV4)return true;h.__randomHuntV4=true;
-  // Existing session is given a new route once on upgrade.
-  h.state.words.forEach(w=>{delete w.huntLocation;delete w.exploreSlot});
+  if(h.__wideRandomHuntV5)return true;h.__wideRandomHuntV5=true;
+  // Migrate the old fixed-anchor route exactly once, not on every reload.
+  if(h.state.words.some(w=>!w.huntLocation||!w.huntLocation.v5)){
+   allocate(h.state.words);h.state.words.forEach(w=>w.huntLocation.v5=true);save(h);
+  }
   const rebuild=h.rebuild.bind(h);
-  h.rebuild=function(){const r=rebuild();place(h);return r};
+  h.rebuild=function(){const result=rebuild();place(h);return result};
   place(h);
-  // A genuinely new hunt (new words or changed language) clears old coordinates.
   const apply=h.apply.bind(h);
-  h.apply=function(){h.state.words.forEach(w=>delete w.huntLocation);const r=apply();h.state.words.forEach(w=>delete w.huntLocation);place(h);return r};
+  h.apply=function(){
+   const result=apply();
+   allocate(h.state.words);h.state.words.forEach(w=>w.huntLocation.v5=true);
+   save(h);place(h);return result;
+  };
   return true;
  }
- let n=0,t=setInterval(()=>{if(install()||++n>300)clearInterval(t)},100);
+ let tries=0,t=setInterval(()=>{if(install()||++tries>300)clearInterval(t)},100);
 })();
