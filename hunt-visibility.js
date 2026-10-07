@@ -19,8 +19,8 @@
   .touch-mode .mobile-top button{position:relative!important;top:auto!important;right:auto!important;min-height:42px!important}
   .touch-mode #golingo-hunt-btn{display:none!important}
   .touch-mode #golingo-hunt-guide:not(.hidden)~*{ }
-  body.golingo-walking .mobile-top{opacity:0!important;pointer-events:none!important}
-  body.golingo-walking #golingo-hunt-btn{display:none!important}
+  body.golingo-walking .mobile-top{opacity:1!important;pointer-events:auto!important}
+  body.golingo-walking #golingo-hunt-btn{display:block!important}
   `;document.head.appendChild(style);
   function showWorldWords(){
    for(const m of h.markers){
