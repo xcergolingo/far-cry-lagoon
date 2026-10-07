@@ -22,12 +22,12 @@ jobs:
       - name: Build static site
         run: |
           mkdir _site
-          cp index.html golingo-bridge.js golingo-sponsor.js exploration-zones.js hunt-ux.js mobile-guard.js _site/
+          cp index.html golingo-bridge.js golingo-sponsor.js exploration-zones.js hunt-ux.js mobile-guard.js hunt-visibility.js _site/
           python3 - <<'PY'
           from pathlib import Path
           p=Path("_site/index.html")
           s=p.read_text()
-          tags=['<script src="golingo-bridge.js"></script>','<script src="golingo-sponsor.js"></script>','<script src="exploration-zones.js"></script>','<script src="hunt-ux.js"></script>','<script src="mobile-guard.js"></script>']
+          tags=['<script src="golingo-bridge.js"></script>','<script src="golingo-sponsor.js"></script>','<script src="exploration-zones.js"></script>','<script src="hunt-ux.js"></script>','<script src="mobile-guard.js"></script>','<script src="hunt-visibility.js"></script>']
           for tag in tags:
               if tag not in s:
                   s=s.replace("</body>",tag+"\n</body>")
