@@ -7,6 +7,13 @@
   document.querySelectorAll("#golingo-show-word-fixed,#golingo-show-target").forEach(x=>x.remove());
   const style=document.createElement("style");
   style.textContent=`
+  html,body,canvas,button,.mobile-top,.mobile-buttons,#mobile-controls,#hud,#menu{user-select:none!important;-webkit-user-select:none!important;-webkit-touch-callout:none!important}
+  input,textarea{user-select:text!important;-webkit-user-select:text!important}
+  #golingo-hunt-guide{top:calc(env(safe-area-inset-top,0px) + 70px)!important;max-width:70vw!important;white-space:normal!important}
+  #toast{top:auto!important;bottom:calc(env(safe-area-inset-bottom,0px) + 175px)!important;max-width:75vw!important;pointer-events:none!important}
+  body.golingo-walking #toast{opacity:0!important}
+  body.golingo-walking #lh-status{display:none!important}
+
   #golingo-arrival-card,#golingo-arrival-word,#golingo-target-card{display:none!important}
   .touch-mode .mobile-top{top:calc(env(safe-area-inset-top,0px) + 12px)!important;right:12px!important;display:flex!important;flex-wrap:wrap!important;max-width:78vw!important;gap:6px!important}
   .touch-mode .mobile-top button{position:relative!important;top:auto!important;right:auto!important;min-height:42px!important}
