@@ -9,7 +9,7 @@
    const a=islands[Math.floor(r()*islands.length)];
    return {x:a[0]+(r()-.5)*28,z:a[1]+(r()-.5)*28,y:7+r()*3,type};
   }
-  if(type==="surface")return {x:-100+r()*200,z:-105+r()*115,y:1.6,type};
+  if(type==="surface")return {x:-100+r()*200,z:-105+r()*115,y:0.15,type};
   if(type==="reef")return {x:-90+r()*180,z:-110+r()*70,y:-3-r()*6,type};
   return {x:-100+r()*200,z:-180+r()*85,y:-12-r()*13,type};
  }
