@@ -3,10 +3,21 @@
 function init(){
 const g=window.__LAGOON__,h=g?.hunt,p=g?.player,boat=g?.boat;
 if(!h||!p||!boat)return false;
-if(window.__golingoBoatHuntV3)return true;window.__golingoBoatHuntV3=true;
-const guide=document.getElementById("golingo-hunt-guide");
-const desktop=document.getElementById("golingo-hunt-btn"),mobile=document.getElementById("golingo-hunt-mobile");
-if(!guide||!desktop)return false;
+if(window.__golingoBoatHuntV3)return true;
+const hud=document.getElementById("hud"),top=document.querySelector(".mobile-top");
+if(!hud||!top)return false;
+let guide=document.getElementById("golingo-hunt-guide");
+if(!guide){guide=document.createElement("div");guide.id="golingo-hunt-guide";guide.className="hidden";guide.style.cssText="position:absolute;left:50%;top:70px;transform:translateX(-50%);z-index:25;background:#073b3ee6;color:white;padding:10px;border-radius:8px;pointer-events:none";hud.appendChild(guide)}
+let desktop=document.getElementById("golingo-hunt-btn"),mobile=document.getElementById("golingo-hunt-mobile");
+if(!desktop){desktop=document.createElement("button");desktop.id="golingo-hunt-btn";desktop.textContent="HUNT";hud.appendChild(desktop)}
+if(!mobile){mobile=document.createElement("button");mobile.id="golingo-hunt-mobile";mobile.textContent="HUNT";top.prepend(mobile)}
+const css=document.createElement("style");css.textContent=`
+#golingo-hunt-btn{position:absolute!important;right:14px!important;top:14px!important;pointer-events:auto!important;z-index:35!important;background:#10554d!important;color:white!important}
+#golingo-hunt-mobile{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:42px!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+.touch-mode #golingo-hunt-btn{display:none!important}
+.touch-mode .mobile-top{opacity:1!important;pointer-events:auto!important;visibility:visible!important;display:flex!important;flex-wrap:wrap!important}
+`;document.head.appendChild(css);
+window.__golingoBoatHuntV3=true;
 let target=null,active=false,fishing=false,previousAuto=false;
 const norm=a=>Math.atan2(Math.sin(a),Math.cos(a));
 function stop(){active=false;target=null;previousAuto=false;delete p.keys.KeyW;delete p.keys.KeyA;delete p.keys.KeyD;delete p.keys.KeyS;guide.classList.add("hidden")}
